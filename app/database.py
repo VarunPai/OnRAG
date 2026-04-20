@@ -2,6 +2,7 @@ import os
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.vectorstores import Chroma
 from dotenv import load_dotenv
 
@@ -38,9 +39,12 @@ def initialize_database():
     # 3. Create Embeddings & Store in Chroma
     print("--- Generating embeddings and saving to ChromaDB... ---")
     
-    # Note: This uses OpenAI embeddings (cheap and high quality). 
-    # If you want 100% local, we can swap this for HuggingFace embeddings later.
-    embeddings = OpenAIEmbeddings()
+    # embeddings = OpenAIEmbeddings()
+    embeddings = HuggingFaceBgeEmbeddings(
+        model_name="BAAI/bge-m3",
+        model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": True},
+    )
     
     db = Chroma.from_documents(
         chunks, 
@@ -54,7 +58,13 @@ def initialize_database():
 
 def query_database(query_text):
     """Simple search to verify the DB works."""
-    embeddings = OpenAIEmbeddings()
+    # embeddings = OpenAIEmbeddings()
+    embeddings = HuggingFaceBgeEmbeddings(
+        model_name="BAAI/bge-m3",
+        model_kwargs={"device": "cpu"},
+        encode_kwargs={"normalize_embeddings": True},
+    )
+    
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
     
     # Search for top 2 matches
@@ -67,13 +77,13 @@ if __name__ == "__main__":
     if not os.path.exists(RAW_DATA_PATH):
         os.makedirs(RAW_DATA_PATH)
         with open(f"{RAW_DATA_PATH}/test.md", "w") as f:
-            f.write("# Project Aura\nProject Aura is a second brain built in April 2026.")
+            f.write("# OnRAG\nProject OnRAG is a second brain built in April 2026.")
 
     initialize_database()
     
     # Test Query
     print("\n--- Testing Search ---")
-    test_query = "What is Project Aura?"
+    test_query = "What is OnRAG?"
     hits = query_database(test_query)
     for doc, score in hits:
         print(f"[Score: {score:.2f}] Content: {doc.page_content}")
