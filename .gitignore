@@ -1,0 +1,13 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+.python-version
+
+# Data & DB
+data/chroma_db/
+data/raw/*.pdf
+data/raw/*.md
